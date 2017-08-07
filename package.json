@@ -1,0 +1,24 @@
+{
+  "name": "hack-excel-sheet",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cuihovah/hack-excel-sheet.git"
+  },
+  "keywords": [
+	"hacker",
+	"write protect",
+	"excel sheet"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cuihovah/hack-excel-sheet/issues"
+  },
+  "homepage": "https://github.com/cuihovah/hack-excel-sheet#readme"
+}
