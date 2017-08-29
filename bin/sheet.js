@@ -8,56 +8,72 @@ const zipdir = require('zip-dir');
 const decompress = require('decompress');
 const decompressUnzip = require('decompress-unzip');
 const Thenjs = require('thenjs');
+const rm = require('rimraf').sync;
 
 /**
  * Usage.
  */
 
+process = global.process
+
 program
-    .usage('<command> filename')
+    .usage('<command> srcExcelFile destExcelFile')
     .parse(process.argv);
 
 var args = program.args;
 
 function help () {
-    if (program.args.length < 1) 
+    if (program.args.length < 2) 
         return program.help();
 }
 
 help();
 
-function process(done, file) {
-    var readStream = fs.createReadStream(file);
-    var str = '';
-    readStream.on('data', function(buf){
-        str += buf.toString();		
-    });
+function proc(done, file) {
 
-    readStream.on('end', function(){
-        str = str.replace(/<sheet[^>]>/g, '');
-        fs.write(file, str, function(err){
-            done();	
-        });		
-    });
+	fs.stat(file, function(err, value){
+		if(!value.isFile())
+			return done(null, null);
+
+		var readStream = fs.createReadStream(file);
+		var str = '';
+		readStream.on('data', function(buf){
+			str += buf.toString();		
+		});
+
+		readStream.on('end', function(){
+			str = str.replace(/<sheetProtection[^>]+>/g, '');
+			fs.writeFile(file, str, function(err){
+				done(null, null);	
+			});		
+		});
+	});
 }
 
 function run() {
     var filename = program.args[0];
+	var destname = program.args[1];
 
     decompress(filename, 'dist', {
         plugins: [
             decompressUnzip()
         ]
     }).then(() => {
-        Thenjs.each([], function(cont, value){
-            process(value, cont);	
-        }).then(function(cont, result){
-            zipdir(path.join('dist'), { 
-                saveTo: './myzip.xlsx' 
-            }, function (err, buffer) {
-                console.log('123');
-            });
-        });
+		var basename = path.join('dist', 'xl', 'worksheets');
+		fs.readdir(basename, function(err, files){
+			Thenjs.each(files, function(cont, value){
+				var f = path.join(basename, value);
+				proc(cont, f);	
+			}).then(function(cont, result){
+				zipdir(path.join('dist'), { 
+					saveTo: destname
+				}, function (err, buffer) {
+					cont(err, buffer);
+				});
+			}).then(function(){
+				rm('dist');
+			});
+		});
     });
 }
 
